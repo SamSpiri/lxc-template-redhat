@@ -30,10 +30,10 @@ GUEST_IFACE=eth0
 # helper functions
 
 yumbootstrap() {
-  /usr/local/sbin/yumbootstrap \
-    --verbose --noninteractive \
-    ${YUMBOOTSTRAP_SUITE_DIR:+--suite-dir=$YUMBOOTSTRAP_SUITE_DIR} \
-    "$@"
+#  /usr/local/sbin/yumbootstrap \
+#    --verbose --noninteractive \
+#    ${YUMBOOTSTRAP_SUITE_DIR:+--suite-dir=$YUMBOOTSTRAP_SUITE_DIR} \
+#    "$@"
 }
 
 replace_script() {
@@ -75,11 +75,11 @@ prepare_cache() { # $suite $target
   suite=$1
   target=$2
 
-  echo "## Installing suite $suite to $target"
-  if ! yumbootstrap $suite $target; then
-    rm -rf $target
-    exit 1
-  fi
+#  echo "## Installing suite $suite to $target"
+#  if ! yumbootstrap $suite $target; then
+#    rm -rf $target
+#    exit 1
+#  fi
 
   # create devices
   echo "## Creating usable /dev in $target"
@@ -131,13 +131,13 @@ prepare_cache() { # $suite $target
 # copy cache to workplace
 
 copy_cache_to_rootdir() { # $cache_dir $root_dir
-  cache_dir=$1
-  root_dir=$2
-
-  echo "## Copying installed OS from cache to $root_dir"
-  mkdir -p $root_dir
-  # XXX: assume there are no dot files
-  cp -x -a $cache_dir/* $root_dir
+#  cache_dir=$1
+#  root_dir=$2
+#
+#  echo "## Copying installed OS from cache to $root_dir"
+#  mkdir -p $root_dir
+#  # XXX: assume there are no dot files
+#  cp -x -a $cache_dir/* $root_dir
 }
 
 #-----------------------------------------------------------------------------
@@ -217,51 +217,51 @@ configure_selinux() {
 # networking
 
 setup_networking() {
-  root_dir=$1
-  name=$2
-  #distro=$3
-  #release=$4
-  # $GUEST_IFACE comes from global settings
-
-  echo "### Configuring networking"
-
-  echo "#### setting hostname"
-  (
-    echo "NETWORKING=yes"
-    echo "NETWORKING_IPV6=no"
-    echo "HOSTNAME=$name"
-    echo "#GATEWAY="
-  ) > $root_dir/etc/sysconfig/network
-  echo
-  echo "Remember to set GATEWAY=... in /etc/sysconfig/network"
-  echo
-
-  echo "#### configuring $GUEST_IFACE in guest"
-  (
-    echo "DEVICE=$GUEST_IFACE"
-    echo "BOOTPROTO=none"
-    echo "ONBOOT=yes"
-    echo "# preserve address et al. set by host"
-    echo "#BROADCAST="
-    echo "#NETWORK="
-    echo "#NETMASK="
-    echo "#IPADDR="
-    echo "USERCTL=no"
-  ) > $root_dir/etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE
-  echo
-  echo "$GUEST_IFACE set to keep address from host (lxc.network.ipv4 and lxc.network.flags=up)."
-  echo "Update /etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE" \
-       "if this is not what you want."
-  echo
-
-  echo "#### configuring resolver (/etc/resolv.conf)"
-  (
-    # TODO: fill with something sane
-    echo "# empty resolv.conf"
-  ) > $root_dir/etc/resolv.conf
-  echo
-  echo "resolv.conf left empty. You probably want to adjust it."
-  echo
+#  root_dir=$1
+#  name=$2
+#  #distro=$3
+#  #release=$4
+#  # $GUEST_IFACE comes from global settings
+#
+#  echo "### Configuring networking"
+#
+#  echo "#### setting hostname"
+#  (
+#    echo "NETWORKING=yes"
+#    echo "NETWORKING_IPV6=no"
+#    echo "HOSTNAME=$name"
+#    echo "#GATEWAY="
+#  ) > $root_dir/etc/sysconfig/network
+#  echo
+#  echo "Remember to set GATEWAY=... in /etc/sysconfig/network"
+#  echo
+#
+#  echo "#### configuring $GUEST_IFACE in guest"
+#  (
+#    echo "DEVICE=$GUEST_IFACE"
+#    echo "BOOTPROTO=none"
+#    echo "ONBOOT=yes"
+#    echo "# preserve address et al. set by host"
+#    echo "#BROADCAST="
+#    echo "#NETWORK="
+#    echo "#NETMASK="
+#    echo "#IPADDR="
+#    echo "USERCTL=no"
+#  ) > $root_dir/etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE
+#  echo
+#  echo "$GUEST_IFACE set to keep address from host (lxc.network.ipv4 and lxc.network.flags=up)."
+#  echo "Update /etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE" \
+#       "if this is not what you want."
+#  echo
+#
+#  echo "#### configuring resolver (/etc/resolv.conf)"
+#  (
+#    # TODO: fill with something sane
+#    echo "# empty resolv.conf"
+#  ) > $root_dir/etc/resolv.conf
+#  echo
+#  echo "resolv.conf left empty. You probably want to adjust it."
+#  echo
 }
 
 #---------------------------------------------------------
@@ -318,7 +318,7 @@ setup_services() {
         esac
         # disable service if it is enabled anywhere
         case $state in
-          *[0-6]:on*) chroot $root_dir chkconfig $svc off ;;
+          *[0-6]:on*) echo $svc off; chroot $root_dir chkconfig $svc off ;;
         esac
       done
     ;;
@@ -337,16 +337,16 @@ setup_services() {
 # root password
 
 set_root_password() {
-  root_dir=$1
-  #name=$2
-  #distro=$3
-  #release=$4
-
-  echo "## setting root password"
-  echo root:root | chroot $root_dir /usr/sbin/chpasswd
-  echo
-  echo "root password was set to \"root\", remember to change it"
-  echo
+#  root_dir=$1
+#  #name=$2
+#  #distro=$3
+#  #release=$4
+#
+#  echo "## setting root password"
+#  echo root:root | chroot $root_dir /usr/sbin/chpasswd
+#  echo
+#  echo "root password was set to \"root\", remember to change it"
+#  echo
 }
 
 #---------------------------------------------------------
