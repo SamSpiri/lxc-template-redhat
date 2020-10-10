@@ -5,6 +5,8 @@
 
 set -e
 
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bin:/sbin
+
 #-----------------------------------------------------------------------------
 # some setup
 
@@ -30,10 +32,10 @@ GUEST_IFACE=eth0
 # helper functions
 
 yumbootstrap() {
-#  /usr/local/sbin/yumbootstrap \
-#    --verbose --noninteractive \
-#    ${YUMBOOTSTRAP_SUITE_DIR:+--suite-dir=$YUMBOOTSTRAP_SUITE_DIR} \
-#    "$@"
+  /usr/local/sbin/yumbootstrap \
+    --verbose --noninteractive \
+    ${YUMBOOTSTRAP_SUITE_DIR:+--suite-dir=$YUMBOOTSTRAP_SUITE_DIR} \
+    "$@"
 }
 
 replace_script() {
@@ -131,13 +133,13 @@ prepare_cache() { # $suite $target
 # copy cache to workplace
 
 copy_cache_to_rootdir() { # $cache_dir $root_dir
-#  cache_dir=$1
-#  root_dir=$2
-#
-#  echo "## Copying installed OS from cache to $root_dir"
-#  mkdir -p $root_dir
-#  # XXX: assume there are no dot files
-#  cp -x -a $cache_dir/* $root_dir
+  cache_dir=$1
+  root_dir=$2
+
+  echo "## Copying installed OS from cache to $root_dir"
+  mkdir -p $root_dir
+  # XXX: assume there are no dot files
+  cp -x -a $cache_dir/* $root_dir
 }
 
 #-----------------------------------------------------------------------------
@@ -156,11 +158,11 @@ configure_guest() { # $root_dir $name
 
   ( setup_login_ttys   "$1" "$2" "$distro" "$release" )
   ( configure_selinux  "$1" "$2" "$distro" "$release" )
-  ( setup_networking   "$1" "$2" "$distro" "$release" )
+#  ( setup_networking   "$1" "$2" "$distro" "$release" )
   ( setup_repositories "$1" "$2" "$distro" "$release" )
   ( setup_locale       "$1" "$2" "$distro" "$release" )
   ( setup_services     "$1" "$2" "$distro" "$release" )
-  ( set_root_password  "$1" "$2" "$distro" "$release" )
+#  ( set_root_password  "$1" "$2" "$distro" "$release" )
 }
 
 #---------------------------------------------------------
@@ -217,51 +219,51 @@ configure_selinux() {
 # networking
 
 setup_networking() {
-#  root_dir=$1
-#  name=$2
-#  #distro=$3
-#  #release=$4
-#  # $GUEST_IFACE comes from global settings
-#
-#  echo "### Configuring networking"
-#
-#  echo "#### setting hostname"
-#  (
-#    echo "NETWORKING=yes"
-#    echo "NETWORKING_IPV6=no"
-#    echo "HOSTNAME=$name"
-#    echo "#GATEWAY="
-#  ) > $root_dir/etc/sysconfig/network
-#  echo
-#  echo "Remember to set GATEWAY=... in /etc/sysconfig/network"
-#  echo
-#
-#  echo "#### configuring $GUEST_IFACE in guest"
-#  (
-#    echo "DEVICE=$GUEST_IFACE"
-#    echo "BOOTPROTO=none"
-#    echo "ONBOOT=yes"
-#    echo "# preserve address et al. set by host"
-#    echo "#BROADCAST="
-#    echo "#NETWORK="
-#    echo "#NETMASK="
-#    echo "#IPADDR="
-#    echo "USERCTL=no"
-#  ) > $root_dir/etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE
-#  echo
-#  echo "$GUEST_IFACE set to keep address from host (lxc.network.ipv4 and lxc.network.flags=up)."
-#  echo "Update /etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE" \
-#       "if this is not what you want."
-#  echo
-#
-#  echo "#### configuring resolver (/etc/resolv.conf)"
-#  (
-#    # TODO: fill with something sane
-#    echo "# empty resolv.conf"
-#  ) > $root_dir/etc/resolv.conf
-#  echo
-#  echo "resolv.conf left empty. You probably want to adjust it."
-#  echo
+  root_dir=$1
+  name=$2
+  #distro=$3
+  #release=$4
+  # $GUEST_IFACE comes from global settings
+
+  echo "### Configuring networking"
+
+  echo "#### setting hostname"
+  (
+    echo "NETWORKING=yes"
+    echo "NETWORKING_IPV6=no"
+    echo "HOSTNAME=$name"
+    echo "#GATEWAY="
+  ) > $root_dir/etc/sysconfig/network
+  echo
+  echo "Remember to set GATEWAY=... in /etc/sysconfig/network"
+  echo
+
+  echo "#### configuring $GUEST_IFACE in guest"
+  (
+    echo "DEVICE=$GUEST_IFACE"
+    echo "BOOTPROTO=none"
+    echo "ONBOOT=yes"
+    echo "# preserve address et al. set by host"
+    echo "#BROADCAST="
+    echo "#NETWORK="
+    echo "#NETMASK="
+    echo "#IPADDR="
+    echo "USERCTL=no"
+  ) > $root_dir/etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE
+  echo
+  echo "$GUEST_IFACE set to keep address from host (lxc.network.ipv4 and lxc.network.flags=up)."
+  echo "Update /etc/sysconfig/network-scripts/ifcfg-$GUEST_IFACE" \
+       "if this is not what you want."
+  echo
+
+  echo "#### configuring resolver (/etc/resolv.conf)"
+  (
+    # TODO: fill with something sane
+    echo "# empty resolv.conf"
+  ) > $root_dir/etc/resolv.conf
+  echo
+  echo "resolv.conf left empty. You probably want to adjust it."
+  echo
 }
 
 #---------------------------------------------------------
@@ -306,9 +308,9 @@ setup_services() {
     centos-[456]|redhat-[456]|centos-[456].*|redhat-[456].*)
       echo "## putting trimmed down \`rc.sysinit' and \`halt' initscripts"
       replace_script $root_dir/etc/rc.d/rc.sysinit  \
-                     $INITSCRIPTS/centos.rc.sysinit
+                     initscripts/centos.rc.sysinit
       replace_script $root_dir/etc/rc.d/init.d/halt \
-                     $INITSCRIPTS/centos.halt
+                     initscripts/centos.halt
 
       echo "## disabling unneeded services"
       chroot $root_dir chkconfig --list | while read svc state; do
@@ -337,16 +339,16 @@ setup_services() {
 # root password
 
 set_root_password() {
-#  root_dir=$1
-#  #name=$2
-#  #distro=$3
-#  #release=$4
-#
-#  echo "## setting root password"
-#  echo root:root | chroot $root_dir /usr/sbin/chpasswd
-#  echo
-#  echo "root password was set to \"root\", remember to change it"
-#  echo
+  root_dir=$1
+  #name=$2
+  #distro=$3
+  #release=$4
+
+  echo "## setting root password"
+  echo root:root | chroot $root_dir /usr/sbin/chpasswd
+  echo
+  echo "root password was set to \"root\", remember to change it"
+  echo
 }
 
 #---------------------------------------------------------
@@ -438,10 +440,10 @@ ROOTFS=$LXC_PATH/rootfs
 # magically
 
 if [ ! -d $INSTALLED_OS_CACHE_DIR ]; then
-  ( prepare_cache $SUITE $INSTALLED_OS_CACHE_DIR )
+  ( prepare_cache $SUITE $ROOTFS )
 fi
 
-( copy_cache_to_rootdir $INSTALLED_OS_CACHE_DIR $ROOTFS )
+#( copy_cache_to_rootdir $INSTALLED_OS_CACHE_DIR $ROOTFS )
 
 ( configure_guest $ROOTFS $GUEST_NAME )
 
